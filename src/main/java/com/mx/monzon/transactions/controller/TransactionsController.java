@@ -32,19 +32,18 @@ public class TransactionsController {
         // 422 HttpStatus.UNPROCESSABLE_ENTITY;
     }
 
-    private List<Transaction> getList(){
-        List<Transaction> list = new ArrayList<>();
+    @PostMapping("/consultPost")
+    public ResponseEntity<String> getPostSuccesfull(
+            @RequestHeader("idCompania") String idCompania,
+            @RequestBody Transaction orden
+    ){
+        String result =
+                "Header" + idCompania
+                + "orden n°" + orden.getId()
+                + "Descripción" + orden.getDescription();
+        // Entidad de respuesta
+        return new ResponseEntity<>(result, HttpStatus.OK);
 
-        for (int i = 1; i <= 3; i++){
-
-            Transaction transaction = new Transaction();
-            transaction.setId(i);
-            transaction.setDescription("Pago " + i);
-            transaction.setAmount(56.58f + i);
-            transaction.setStatus("Inactive");
-            list.add(transaction);
-        }
-        return list;
     }
 
     // Convierte excel a listado de consumidores
@@ -67,11 +66,43 @@ public class TransactionsController {
     public ResponseEntity<String> convertirPerfilExcel1(
             @RequestParam("file") MultipartFile file
     ) throws IOException, JSONException {
-
-        RestTemplate restTemplate = new RestTemplate();
+        /*RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response
                 = restTemplate.getForEntity("http://localhost:8080/tata", String.class);
+        */
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("idCompania", "0001");
 
+        Transaction transaction = new Transaction();
+        transaction.setId(5);
+        transaction.setDescription("and Description");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String transactionString = objectMapper.writeValueAsString(transaction);
+
+        final HttpEntity<Transaction> entity = new HttpEntity<>(transaction, requestHeaders);
+        ResponseEntity<String> response
+                = restTemplate.exchange(
+                        "http://localhost:8080/consultPost",
+                HttpMethod.POST,
+                entity,
+                String.class
+        );
         return response;
+    }
+
+    private List<Transaction> getList(){
+        List<Transaction> list = new ArrayList<>();
+
+        for (int i = 1; i <= 3; i++){
+
+            Transaction transaction = new Transaction();
+            transaction.setId(i);
+            transaction.setDescription("Pago " + i);
+            transaction.setAmount(56.58f + i);
+            transaction.setStatus("Inactive");
+            list.add(transaction);
+        }
+        return list;
     }
 }
